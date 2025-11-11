@@ -1,122 +1,114 @@
+// lib/main.dart
+
+import 'dart:convert'; // Para decodificar o JSON
+import 'package:flutter/foundation.dart'; // Para usar a variável kIsWeb
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http; // Damos um apelido 'http' para o pacote
 
 void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // Variáveis de estado para guardar as informações do cliente
+  String _clientName = 'Carregando...';
+  Color _primaryColor = Colors.grey; // Cor padrão enquanto carrega
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Quando o widget é iniciado, chamamos nossa função para buscar os dados
+    _initializeApp();
   }
-}
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  Future<void> _initializeApp() async {
+    // Apenas para Flutter Web, pegamos o hostname da URL do navegador
+    // Ex: "loja-do-joao.com" ou "boutique-da-maria.com"
+    final String hostname = kIsWeb ? Uri.base.host : 'localhost';
+    
+    // Montamos a URL base da nossa API NestJS que está na porta 3000
+    final String apiBaseUrl = 'http://$hostname:3000';
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
+    // Chamamos as duas funções em paralelo para carregar tudo
+    await Future.wait([
+      _fetchClientConfig(apiBaseUrl),
+      _fetchProducts(apiBaseUrl),
+    ]);
 
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
+    // Após tudo carregar, mudamos o estado para remover o loading
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      _isLoading = false;
     });
   }
 
+  // Função para buscar a configuração do cliente (Whitelabel)
+  Future<void> _fetchClientConfig(String apiBaseUrl) async {
+    try {
+      final response = await http.get(Uri.parse('$apiBaseUrl/config'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        
+        // Atualizamos o estado com os dados recebidos da API
+        setState(() {
+          _clientName = data['name'];
+          // Convertemos a string Hex da cor para um objeto Color do Flutter
+          final colorString = 'FF${data['primaryColor'].replaceAll('#', '')}';
+          _primaryColor = Color(int.parse(colorString, radix: 16));
+        });
+      }
+    } catch (e) {
+      print('Erro ao buscar configuração do cliente: $e');
+      setState(() {
+        _clientName = 'Erro de Conexão';
+      });
+    }
+  }
+
+  // Função para buscar a lista de produtos
+  Future<void> _fetchProducts(String apiBaseUrl) async {
+    try {
+      final response = await http.get(Uri.parse('$apiBaseUrl/products'));
+      if (response.statusCode == 200) {
+        // Por enquanto, apenas imprimimos no console para provar que funcionou
+        print('Produtos recebidos com sucesso!');
+        print('Tamanho da resposta: ${response.body.length} caracteres.');
+      }
+    } catch (e) {
+      print('Erro ao buscar produtos: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+    return MaterialApp(
+      title: 'E-commerce Whitelabel',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      home: Scaffold(
+        // Usamos nossa cor dinâmica na AppBar
+        appBar: AppBar(
+          backgroundColor: _primaryColor,
+          // Usamos nosso nome dinâmico no título
+          title: Text(_clientName),
+        ),
+        // Mostramos um indicador de progresso enquanto os dados não chegam
+        body: Center(
+          child: _isLoading
+              ? const CircularProgressIndicator()
+              : const Text('Configuração carregada. Produtos no console!'),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
