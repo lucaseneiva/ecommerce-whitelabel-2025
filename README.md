@@ -84,6 +84,6 @@ Abra o navegador nas seguintes URLs para ver a mudança de tema:
 - **Cliente 2 (Roxo):** [http://in8.com:8000](http://in8.com:8000)
 
 **Usuários de Teste (Gerados automaticamente):**
-- Devnology: `joao@email.com` / `123456` (Ajuste o UsersService se necessário para bater com o novo nome da loja)
+- Devnology: `joao@email.com` / `123456`
 - In8: `maria@email.com` / `123456`
 ```
