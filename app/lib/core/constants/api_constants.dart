@@ -1,13 +1,14 @@
 import 'package:flutter/foundation.dart';
 
 class ApiConstants {
-  // Ajuste aqui se necessário. Para Web local, localhost:3000 costuma funcionar
-  // se a API estiver rodando na mesma máquina.
   static String get baseUrl {
     if (kIsWeb) {
-      // Pega a URL do navegador para montar a base, caso a API esteja no mesmo host/porta
-      // Mas como a API NestJS está na 3000 e o Flutter na 8080 (geralmente):
-      return 'http://localhost:3000'; 
+      // Se você digitar 'loja-do-joao.com:8000', isso pega 'loja-do-joao.com'
+      final host = Uri.base.host;
+      
+      // Retorna 'http://loja-do-joao.com:3000'
+      // Assim, a requisição vai com o Host header correto para o NestJS
+      return 'http://$host:3000';
     }
     return 'http://localhost:3000';
   }
