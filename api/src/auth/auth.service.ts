@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common'; // Adicione ForbiddenException
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -15,21 +15,21 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     
     if (!user) {
-        throw new UnauthorizedException('Usuário não encontrado.');
+        throw new UnauthorizedException('Credenciais inválidas.');
     }
 
-    // 2. (Opcional no Whitelabel) Verificar se o usuário pertence a loja correta (host)
-    // No mundo real, você impediria que o admin da Loja A logasse na URL da Loja B.
+    // 2. VERIFICAÇÃO WHITELABEL (Agora obrigatória)
+    // Se o usuário pertence à "loja-do-joao.com" e tenta logar via "boutique-da-maria.com", bloqueia.
     if (user.client.url !== host) {
-        // throw new UnauthorizedException('Este usuário não pertence a esta loja.');
-        // Para o teste ser mais simples, vou deixar passar ou apenas logar
-        console.warn(`Aviso: Usuário da loja ${user.client.url} logando em ${host}`);
+        // Em produção, por segurança, você pode retornar a mesma mensagem genérica "Credenciais inválidas"
+        // para não expor que o usuário existe em outra loja. Mas para o teste, Forbidden explica melhor.
+        throw new ForbiddenException(`Este usuário não possui acesso a esta loja (${host}).`);
     }
 
     // 3. Validar senha
     const isMatch = await bcrypt.compare(pass, user.password_hash);
     if (!isMatch) {
-      throw new UnauthorizedException('Senha incorreta.');
+      throw new UnauthorizedException('Credenciais inválidas.');
     }
 
     // 4. Gerar Token
