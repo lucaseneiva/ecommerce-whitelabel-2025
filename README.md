@@ -50,3 +50,40 @@ erDiagram
         string password_hash
         int clientId FK
     }
+```
+
+## 🛠 Como Rodar o Projeto
+
+### 1. Configuração de DNS Local (Essencial para o Whitelabel)
+Para simular os domínios dos clientes, adicione as seguintes linhas ao seu arquivo `/etc/hosts` (Linux/Mac) ou `C:\Windows\System32\drivers\etc\hosts` (Windows):
+
+```text
+127.0.0.1 devnology.com
+127.0.0.1 in8.com
+```
+
+### 2. Backend (API)
+```bash
+cd api
+npm install
+npm run start:dev
+```
+Acesse a documentação da API em: `http://localhost:3000/api/docs`
+
+### 3. Frontend (App)
+Execute o Flutter Web especificando a porta e o hostname:
+
+```bash
+cd app
+flutter run -d web-server --web-hostname=0.0.0.0 --web-port=8000
+```
+
+### 4. Como Testar
+Abra o navegador nas seguintes URLs para ver a mudança de tema:
+- **Cliente 1 (Verde):** [http://devnology.com:8000](http://devnology.com:8000)
+- **Cliente 2 (Roxo):** [http://in8.com:8000](http://in8.com:8000)
+
+**Usuários de Teste (Gerados automaticamente):**
+- Devnology: `joao@email.com` / `123456` (Ajuste o UsersService se necessário para bater com o novo nome da loja)
+- In8: `maria@email.com` / `123456`
+```
