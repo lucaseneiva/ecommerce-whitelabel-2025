@@ -8,29 +8,59 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Valores seguros
     final String imageUrl = product.image ?? '';
-    final String name = product.name ?? 'Produto sem nome';
+    final String name = product.name ?? 'Produto';
     final String department = product.department ?? 'Geral';
-    final String price = product.price ?? '0.00';
+    final String price = product.price?.toStringAsFixed(2) ?? '0.00';
+
+    // Definindo o widget de Placeholder para reaproveitar
+    Widget buildPlaceholder() {
+      return Container(
+        color: Colors.grey[100], // Fundo cinza bem claro
+        width: double.infinity,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.shopping_bag_outlined, // Ícone neutro de e-commerce
+              size: 48,
+              // Usa a cor da loja com transparência para ficar elegante
+              color: Theme.of(context).primaryColor.withOpacity(0.3),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Card(
-      elevation: 2,
+      elevation: 0, // Flat design fica mais moderno
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey[200]!), // Borda sutil
+      ),
       clipBehavior: Clip.antiAlias,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Área da Imagem
           Expanded(
-            child: imageUrl.isNotEmpty
-                ? Image.network(
+            child: imageUrl.isEmpty
+                ? buildPlaceholder()
+                : Image.network(
                     imageUrl,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                  )
-                : _buildPlaceholder(),
+                    // Loading
+                    loadingBuilder: (_, child, progress) {
+                      if (progress == null) return child;
+                      return Container(color: Colors.grey[50]);
+                    },
+                    // Erro (se a URL existir mas não carregar)
+                    errorBuilder: (_, __, ___) => buildPlaceholder(),
+                  ),
           ),
+          
+          // Área de Texto
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -38,40 +68,37 @@ class ProductCard extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   department,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.grey[600],
-                      ),
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'R\$ $price',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Theme.of(context).primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                  ),
                 ),
               ],
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildPlaceholder() {
-    return Container(
-      color: Colors.grey[200],
-      width: double.infinity,
-      child: const Icon(Icons.image_not_supported, size: 50, color: Colors.grey),
     );
   }
 }

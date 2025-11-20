@@ -4,21 +4,14 @@ part 'product_model.g.dart';
 
 @JsonSerializable()
 class ProductModel {
-  final String? id; // Pode vir null ou numérico convertido
-  
-  @JsonKey(name: 'nome')
+  final String? id;
   final String? name;
-  
-  @JsonKey(name: 'descricao')
   final String? description;
-  
-  @JsonKey(name: 'imagem')
   final String? image;
   
-  @JsonKey(name: 'preco')
-  final String? price; // O MockAPI as vezes manda numero, as vezes string
+  // O Backend agora manda number, mas o JsonSerializable lida bem com num
+  final num? price; 
   
-  @JsonKey(name: 'departamento')
   final String? department;
 
   ProductModel({
@@ -30,14 +23,5 @@ class ProductModel {
     this.department,
   });
 
-  factory ProductModel.fromJson(Map<String, dynamic> json) {
-    // Pequeno truque para converter tudo para String caso venha Number do JSON
-    // Isso evita erros do tipo "int is not a subtype of String"
-    Map<String, dynamic> safeJson = {};
-    json.forEach((key, value) {
-      safeJson[key] = value?.toString();
-    });
-    
-    return _$ProductModelFromJson(safeJson);
-  }
+  factory ProductModel.fromJson(Map<String, dynamic> json) => _$ProductModelFromJson(json);
 }
