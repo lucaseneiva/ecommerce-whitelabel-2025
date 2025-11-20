@@ -1,112 +1,75 @@
-// lib/main.dart
-
-import 'dart:convert'; // Para decodificar o JSON
-import 'package:flutter/foundation.dart'; // Para usar a variável kIsWeb
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // Damos um apelido 'http' para o pacote
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+// import 'package:flutter_web_plugins/url_strategy.dart'; // Descomente se quiser remover o # da URL
+
+import 'core/routing/app_router.dart';
+import 'features/whitelabel/ui/providers/config_provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  // usePathUrlStrategy(); // Descomente se quiser remover o # da URL
+  runApp(const ProviderScope(child: AppBootstrap()));
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+class AppBootstrap extends ConsumerWidget {
+  const AppBootstrap({super.key});
 
   @override
-  State<MyApp> createState() => _MyAppState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    // O segredo do Whitelabel:
+    // Monitoramos a configuração ANTES de renderizar o MaterialApp final
+    // para injetar a cor primária correta no tema.
+    final configAsync = ref.watch(clientConfigProvider);
 
-class _MyAppState extends State<MyApp> {
-  // Variáveis de estado para guardar as informações do cliente
-  String _clientName = 'Carregando...';
-  Color _primaryColor = Colors.grey; // Cor padrão enquanto carrega
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    // Quando o widget é iniciado, chamamos nossa função para buscar os dados
-    _initializeApp();
-  }
-
-  Future<void> _initializeApp() async {
-    // Apenas para Flutter Web, pegamos o hostname da URL do navegador
-    // Ex: "loja-do-joao.com" ou "boutique-da-maria.com"
-    final String hostname = kIsWeb ? Uri.base.host : 'localhost';
-    
-    // Montamos a URL base da nossa API NestJS que está na porta 3000
-    final String apiBaseUrl = 'http://$hostname:3000';
-
-    // Chamamos as duas funções em paralelo para carregar tudo
-    await Future.wait([
-      _fetchClientConfig(apiBaseUrl),
-      _fetchProducts(apiBaseUrl),
-    ]);
-
-    // Após tudo carregar, mudamos o estado para remover o loading
-    setState(() {
-      _isLoading = false;
-    });
-  }
-
-  // Função para buscar a configuração do cliente (Whitelabel)
-  Future<void> _fetchClientConfig(String apiBaseUrl) async {
-    try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/config'));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        
-        // Atualizamos o estado com os dados recebidos da API
-        setState(() {
-          _clientName = data['name'];
-          // Convertemos a string Hex da cor para um objeto Color do Flutter
-          final colorString = 'FF${data['primaryColor'].replaceAll('#', '')}';
-          _primaryColor = Color(int.parse(colorString, radix: 16));
-        });
-      }
-    } catch (e) {
-      print('Erro ao buscar configuração do cliente: $e');
-      setState(() {
-        _clientName = 'Erro de Conexão';
-      });
-    }
-  }
-
-  // Função para buscar a lista de produtos
-  Future<void> _fetchProducts(String apiBaseUrl) async {
-    try {
-      final response = await http.get(Uri.parse('$apiBaseUrl/products'));
-      if (response.statusCode == 200) {
-        // Por enquanto, apenas imprimimos no console para provar que funcionou
-        print('Produtos recebidos com sucesso!');
-        print('Tamanho da resposta: ${response.body.length} caracteres.');
-      }
-    } catch (e) {
-      print('Erro ao buscar produtos: $e');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'E-commerce Whitelabel',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return configAsync.when(
+      data: (config) => _MainApp(
+        primaryColor: config.primaryColor.toColor(),
+        title: config.name,
       ),
-      home: Scaffold(
-        // Usamos nossa cor dinâmica na AppBar
-        appBar: AppBar(
-          backgroundColor: _primaryColor,
-          // Usamos nosso nome dinâmico no título
-          title: Text(_clientName),
+      // Tela de loading inicial enquanto descobre "qual loja sou eu"
+      loading: () => const MaterialApp(
+        home: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
         ),
-        // Mostramos um indicador de progresso enquanto os dados não chegam
-        body: Center(
-          child: _isLoading
-              ? const CircularProgressIndicator()
-              : const Text('Configuração carregada. Produtos no console!'),
+        debugShowCheckedModeBanner: false,
+      ),
+      // Fallback simples em caso de erro fatal na config
+      error: (error, stack) => MaterialApp(
+        home: Scaffold(
+          body: Center(child: Text('Erro fatal de configuração: $error')),
+        ),
+        debugShowCheckedModeBanner: false,
+      ),
+    );
+  }
+}
+
+class _MainApp extends ConsumerWidget {
+  final Color primaryColor;
+  final String title;
+
+  const _MainApp({
+    required this.primaryColor,
+    required this.title,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(goRouterProvider);
+
+    return MaterialApp.router(
+      title: title,
+      debugShowCheckedModeBanner: false,
+      routerConfig: router,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: primaryColor,
+          primary: primaryColor,
+        ),
+        useMaterial3: true,
+        appBarTheme: AppBarTheme(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          centerTitle: true,
         ),
       ),
     );
