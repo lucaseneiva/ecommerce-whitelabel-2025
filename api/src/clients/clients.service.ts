@@ -17,21 +17,21 @@ export class ClientsService implements OnModuleInit {
   ) {}
   
 
-	// Popular bd com dados iniciais.
+// Popular bd com dados iniciais.
   async onModuleInit() {
     const count = await this.clientRepository.count();
     if (count === 0) {
       console.log('Banco de dados de clientes vazio. Populando...');
       await this.clientRepository.save([
         this.clientRepository.create({
-          name: 'Loja do João',
-          url: 'loja-do-joao.com',
-          primaryColor: '#FF5733',
+          name: 'Devnology',
+          url: 'devnology.com', // Ajustado conforme enunciado
+          primaryColor: '#2ecc71', // Verde (conforme enunciado)
         }),
         this.clientRepository.create({
-          name: 'Boutique da Maria',
-          url: 'boutique-da-maria.com',
-          primaryColor: '#3375FF',
+          name: 'In8',
+          url: 'in8.com', // Ajustado conforme enunciado
+          primaryColor: '#9b59b6', // Roxo (conforme enunciado)
         }),
       ]);
       console.log('Banco de dados populado com sucesso.');

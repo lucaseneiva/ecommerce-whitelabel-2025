@@ -25,8 +25,8 @@ export class UsersService implements OnModuleInit {
 
     console.log('Banco de dados de usuários vazio. Populando...');
 
-    const lojaDoJoao = await this.clientRepository.findOne({ where: { url: 'loja-do-joao.com' } });
-    const boutiqueDaMaria = await this.clientRepository.findOne({ where: { url: 'boutique-da-maria.com' } });
+    const lojaDoJoao = await this.clientRepository.findOne({ where: { url: 'devnology.com' } });
+    const boutiqueDaMaria = await this.clientRepository.findOne({ where: { url: 'in8.com' } });
 
     if (!lojaDoJoao || !boutiqueDaMaria) {
       console.error('ERRO: Clientes não encontrados. O seeding de usuários falhou.');

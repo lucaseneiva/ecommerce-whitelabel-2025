@@ -10,7 +10,7 @@ export class ClientsController {
   @Get()
   async getConfig(@Req() request: Request): Promise<ClientConfig> {
     const requestHost = request.headers.host ?? 'default-host:8000';
-    const host = requestHost.split(':')[0]; // 'loja-do-joao.com:3000' -> 'loja-do-joao.com'
+    const host = requestHost.split(':')[0]; 
 
     return this.clientsService.getConfigByHost(host);
   }
