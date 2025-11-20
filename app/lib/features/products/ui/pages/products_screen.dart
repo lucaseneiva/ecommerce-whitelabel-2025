@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../whitelabel/ui/providers/config_provider.dart';
 import '../providers/products_provider.dart';
 import '../widgets/product_card.dart';
+import '../../../auth/ui/providers/auth_provider.dart';
 
 class ProductsScreen extends ConsumerWidget {
   const ProductsScreen({super.key});
@@ -19,7 +20,16 @@ class ProductsScreen extends ConsumerWidget {
           data: (config) => Text(config.name),
           loading: () => const Text('Carregando loja...'),
           error: (_, __) => const Text('Loja'),
+          
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              ref.read(authControllerProvider.notifier).logout();
+            },
+          )
+        ],
       ),
       body: productsAsync.when(
         data: (products) {

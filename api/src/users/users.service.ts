@@ -52,4 +52,11 @@ export class UsersService implements OnModuleInit {
 
     console.log('Usuários de teste criados com sucesso.');
   }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      relations: ['client'], // Importante para checar de qual loja ele é
+    });
+  }
 }
