@@ -2,6 +2,8 @@
 
 Projeto desenvolvido para o processo seletivo, consistindo em uma solução Fullstack (NestJS + Flutter) com arquitetura Whitelabel (Multi-tenant).
 
+![whitelabel(1)](https://github.com/user-attachments/assets/db5ca0f4-fac2-4dc9-b879-5e6a90216c41)
+
 ## 🚀 Tecnologias Utilizadas
 
 ### Backend (API)
@@ -69,6 +71,7 @@ npm install
 npm run start:dev
 ```
 Acesse a documentação da API em: `http://localhost:3000/api/docs`
+<img width="1919" height="1079" alt="image" src="https://github.com/user-attachments/assets/d2592531-8cca-4808-98cc-524e883071f5" />
 
 ### 3. Frontend (App)
 Execute o Flutter Web especificando a porta e o hostname:
